@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  dnsserver:
+    image: technitium/dns-server
+    container_name: dnsserver
+    ports:
+      - 5380:5380 # admin api
+      # - 53:53 # default DNS port
+
+  caddy:
+    image: caddy
+    container_name: caddy
+    ports:
+      - 7999:7999
+      - 5055:2019
+    environment:
+      - CADDY_ADMIN=0.0.0.0:2019
+    volumes:
+      - "./caddyfile:/etc/caddy/Caddyfile"
+    depends_on:
+      - app1
+      - app2
+    networks:
+      - caddynet
+
+  app1:
+    image: busybox
+    container_name: app1
+    ports:
+      - 8080:8080
+    tty: true
+    command: "sh -c 'mkdir /webapp; cd /webapp; echo \"<h2>Hostname: $(hostname)</h2> <br> <h2>IP Address: $(hostname -i)</h2>\">index.html;httpd -f -p 0.0.0.0:8080'"
+    networks:
+      - caddynet
+
+  app2:
+    image: busybox
+    container_name: app2
+    tty: true
+    ports:
+      - 8081:8080
+    command: "sh -c 'mkdir /webapp; cd /webapp; echo \"<h2>Hostname: $(hostname)</h2> <br> <h2>IP Address: $(hostname -i)</h2>\">index.html;httpd -f -p 0.0.0.0:8080'"
+    networks:
+      - caddynet
+
+networks:
+  caddynet:
+    driver: bridge

@@ -1,0 +1,16 @@
+:7999 {
+    reverse_proxy * {
+        lb_policy cookie server {
+            fallback first
+        }
+        dynamic a {
+            name      webapps.bbapps.local
+            port      8080
+            refresh   10s
+            resolvers dnsserver
+            dial_timeout        5s
+            dial_fallback_delay 5s
+            versions ipv4
+        }
+    }
+}
